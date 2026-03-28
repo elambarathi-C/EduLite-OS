@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EduLite Quiz</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+    nav{background:#1a1d27;border-bottom:1px solid #2d3048;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .back{color:#6b7a99;text-decoration:none;font-size:14px}
+    .main{max-width:700px;margin:40px auto;padding:0 24px}
+    .setup{background:#1a1d27;border:1px solid #2d3048;border-radius:16px;padding:32px}
+    h2{font-size:22px;margin-bottom:24px}
+    label{font-size:12px;color:#6b7a99;margin-bottom:6px;display:block}
+    select{width:100%;padding:12px 14px;background:#0f1117;border:1px solid #2d3048;border-radius:10px;color:#e2e8f0;font-size:14px;margin-bottom:20px;font-family:inherit}
+    .btn{width:100%;padding:14px;background:#3dff9a;color:#0f1117;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+    .loading{text-align:center;padding:60px;color:#6b7a99;font-style:italic;display:none}
+    .q-card{background:#1a1d27;border:1px solid #2d3048;border-radius:14px;padding:28px;margin-bottom:14px;display:none}
+    .q-card.show{display:block}
+    .q-text{font-size:17px;line-height:1.6;margin-bottom:20px}
+    .opts{display:flex;flex-direction:column;gap:10px}
+    .opt{background:#0f1117;border:1px solid #2d3048;padding:13px 16px;border-radius:10px;cursor:pointer;transition:border-color .2s;font-size:15px}
+    .opt:hover{border-color:#4d9fff}
+    .opt.correct{border-color:#3dff9a;background:#3dff9a0d;color:#3dff9a}
+    .opt.wrong{border-color:#ff6b6b;background:#ff6b6b0d;color:#ff6b6b}
+    .score-box{background:#1a1d27;border:1px solid #2d3048;border-radius:16px;padding:48px;text-align:center;display:none}
+    .score-num{font-size:72px;font-weight:700;color:#3dff9a}
+  </style>
+</head>
+<body>
+<nav><a href="/dashboard" class="back">← Back</a><span style="font-size:16px;font-weight:600">Quiz</span></nav>
+<div class="main">
+  <div class="setup" id="setup">
+    <h2>Generate a Quiz</h2>
+    <label>Subject</label>
+    <select id="qSubj">
+      <option>Mathematics</option><option>Science</option>
+      <option>English</option><option>History</option><option>Geography</option>
+    </select>
+    <button class="btn" onclick="startQuiz()">Generate Quiz</button>
+  </div>
+  <div class="loading" id="loading">Generating quiz with AI... this may take 30 seconds ⏳</div>
+  <div id="quizArea"></div>
+  <div class="score-box" id="scoreBox">
+    <div class="score-num" id="scoreNum">0/5</div>
+    <div style="color:#6b7a99;margin-top:8px">Quiz Complete!</div>
+    <button class="btn" style="margin-top:28px" onclick="restart()">Try Again</button>
+  </div>
+</div>
+<script>
+const GRADE="{{ grade }}";
+let total=0,score=0,answered=0;
+async function startQuiz(){
+  const subj=document.getElementById('qSubj').value;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('loading').style.display='block';
+  try{
+    const r=await fetch('http://localhost:5001/quiz',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({subject:subj,grade:GRADE,num_questions:5})
+    });
+    const d=await r.json();
+    document.getElementById('loading').style.display='none';
+    renderQuiz(d.questions,subj);
+  }catch(e){document.getElementById('loading').textContent='Cannot connect to AI.';}
+}
+function renderQuiz(rawText,subj){
+  const qs=parseQuestions(rawText);
+  total=qs.length;score=0;answered=0;
+  document.getElementById('quizArea').innerHTML=qs.map((q,i)=>`
+    <div class="q-card show" id="q${i}">
+      <div class="q-text">${i+1}. ${q.question}</div>
+      <div class="opts">${q.options.map((o,j)=>`<div class="opt" onclick="answer(${i},'${'ABCD'[j]}','${q.answer}',this)">${'ABCD'[j]}) ${o}</div>`).join('')}</div>
+    </div>`).join('');
+}
+function answer(qi,chosen,correct,el){
+  document.getElementById('q'+qi).querySelectorAll('.opt').forEach(o=>o.onclick=null);
+  el.classList.add(chosen===correct?'correct':'wrong');
+  if(chosen===correct)score++;
+  answered++;
+  if(answered===total){
+    setTimeout(()=>{
+      document.getElementById('quizArea').innerHTML='';
+      document.getElementById('scoreNum').textContent=score+'/'+total;
+      document.getElementById('scoreBox').style.display='block';
+      fetch('/save_score',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({subject:document.getElementById('qSubj')?.value||'',score,total})});
+    },800);
+  }
+}
+function parseQuestions(text){
+  return text.split(/Q:/).filter(b=>b.trim()).slice(0,5).map(block=>{
+    const lines=block.trim().split('\n').filter(l=>l.trim());
+    const question=lines[0]?.trim()||'';
+    const options=lines.slice(1,5).map(l=>l.replace(/^[A-D][).]\s*/,'').trim()).filter(Boolean);
+    const ansLine=lines.find(l=>l.includes('Answer:'))||'';
+    const answer=ansLine.replace(/.*Answer:\s*/,'').trim().charAt(0).toUpperCase();
+    return{question,options,answer};
+  }).filter(q=>q.question&&q.options.length>=2);
+}
+function restart(){
+  document.getElementById('scoreBox').style.display='none';
+  document.getElementById('setup').style.display='block';
+}
+</script>
+</body>
+</html>

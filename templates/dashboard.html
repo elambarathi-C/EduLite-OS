@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EduLite Dashboard</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+    nav{background:#1a1d27;border-bottom:1px solid #2d3048;padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+    .logo{color:#3dff9a;font-size:20px;font-weight:700}
+    .nav-right{display:flex;align-items:center;gap:20px;font-size:14px;color:#6b7a99}
+    .nav-right a{color:#6b7a99;text-decoration:none}
+    .main{max-width:860px;margin:48px auto;padding:0 24px}
+    .greeting{font-size:26px;font-weight:700;margin-bottom:8px}
+    .grade-tag{display:inline-block;background:#3dff9a15;color:#3dff9a;border:1px solid #3dff9a30;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:36px}
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:40px}
+    .card{background:#1a1d27;border:1px solid #2d3048;border-radius:16px;padding:28px;text-decoration:none;color:inherit;display:block;transition:border-color .2s}
+    .card:hover{border-color:#3dff9a}
+    .card-icon{font-size:36px;margin-bottom:14px}
+    .card h3{font-size:18px;margin-bottom:8px}
+    .card p{color:#6b7a99;font-size:14px;line-height:1.6}
+    .section-title{font-size:12px;color:#6b7a99;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+    .subjects{display:flex;flex-wrap:wrap;gap:10px}
+    .subj{background:#1a1d27;border:1px solid #2d3048;padding:8px 18px;border-radius:20px;font-size:14px;cursor:pointer;transition:all .2s}
+    .subj:hover{border-color:#3dff9a;color:#3dff9a}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="logo">EduLite</div>
+  <div class="nav-right"><span>{{ name }}</span><a href="/logout">Logout</a></div>
+</nav>
+<div class="main">
+  <div class="greeting">Welcome back, {{ name }} 👋</div>
+  <div class="grade-tag">{{ grade|capitalize }} School</div>
+  <div class="cards">
+    <a href="/chat" class="card">
+      <div class="card-icon">💬</div>
+      <h3>Ask AI Tutor</h3>
+      <p>Ask any question from your CBSE textbooks and get instant answers — no internet needed.</p>
+    </a>
+    <a href="/quiz" class="card">
+      <div class="card-icon">📝</div>
+      <h3>Take a Quiz</h3>
+      <p>Test your knowledge with AI-generated multiple choice questions from your syllabus.</p>
+    </a>
+  </div>
+  <div class="section-title">Quick Subject Access</div>
+  <div class="subjects">
+    <div class="subj" onclick="location.href='/chat?subject=Mathematics'">Mathematics</div>
+    <div class="subj" onclick="location.href='/chat?subject=Science'">Science</div>
+    <div class="subj" onclick="location.href='/chat?subject=English'">English</div>
+    <div class="subj" onclick="location.href='/chat?subject=History'">History</div>
+    <div class="subj" onclick="location.href='/chat?subject=Geography'">Geography</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EduLite Tutor</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;height:100vh;display:flex;flex-direction:column}
+    nav{background:#1a1d27;border-bottom:1px solid #2d3048;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+    .back{color:#6b7a99;text-decoration:none;font-size:14px}
+    .subject-sel{margin-left:auto;background:#0f1117;border:1px solid #2d3048;color:#e2e8f0;padding:6px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+    .messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+    .msg{max-width:76%;padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.65}
+    .msg.user{background:#3dff9a15;border:1px solid #3dff9a30;align-self:flex-end}
+    .msg.ai{background:#1a1d27;border:1px solid #2d3048;align-self:flex-start}
+    .ai-label{color:#3dff9a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+    .typing{color:#6b7a99;font-style:italic}
+    .input-row{background:#1a1d27;border-top:1px solid #2d3048;padding:16px 24px;display:flex;gap:10px;flex-shrink:0}
+    .input-row input{flex:1;background:#0f1117;border:1px solid #2d3048;color:#e2e8f0;padding:13px 16px;border-radius:12px;font-size:15px;font-family:inherit}
+    .input-row input:focus{outline:none;border-color:#3dff9a}
+    .send{background:#3dff9a;color:#0f1117;border:none;padding:13px 26px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/dashboard" class="back">← Back</a>
+  <span style="font-size:16px;font-weight:600">AI Tutor</span>
+  <select class="subject-sel" id="subSel">
+    <option value="">All Subjects</option>
+    <option>Mathematics</option><option>Science</option>
+    <option>English</option><option>History</option><option>Geography</option>
+  </select>
+</nav>
+<div class="messages" id="msgs">
+  <div class="msg ai">
+    <div class="ai-label">EduLite Tutor</div>
+    Hi {{ name }}! I am your offline AI tutor. Ask me anything from your CBSE textbooks. 📚
+  </div>
+</div>
+<div class="input-row">
+  <input id="qInput" type="text" placeholder="Ask a question..."
+         onkeydown="if(event.key==='Enter')send()">
+  <button class="send" onclick="send()">Ask</button>
+</div>
+<script>
+const GRADE="{{ grade }}",LANG="{{ language }}";
+async function send(){
+  const inp=document.getElementById('qInput');
+  const q=inp.value.trim(); if(!q)return;
+  inp.value=''; addMsg(q,'user');
+  const t=addMsg('Thinking...','ai',true);
+  try{
+    const r=await fetch('http://localhost:5001/ask',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question:q,grade:GRADE,language:LANG,
+        subject:document.getElementById('subSel').value||null})
+    });
+    const d=await r.json(); t.remove();
+    addMsg(d.answer||d.error,'ai');
+  }catch(e){t.remove();addMsg('Cannot reach AI. Make sure api.py is running.','ai');}
+}
+function addMsg(text,type,typing=false){
+  const d=document.createElement('div'); d.className='msg '+type;
+  if(type==='ai')d.innerHTML='<div class="ai-label">EduLite Tutor</div>'+(typing?'<span class="typing">'+text+'</span>':text);
+  else d.textContent=text;
+  const m=document.getElementById('msgs'); m.appendChild(d); m.scrollTop=m.scrollHeight;
+  return d;
+}
+const sp=new URLSearchParams(location.search).get('subject');
+if(sp)document.getElementById('subSel').value=sp;
+</script>
+</body>
+</html>

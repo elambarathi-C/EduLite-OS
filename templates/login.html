@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EduLite</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .card{background:#1a1d27;border:1px solid #2d3048;border-radius:20px;padding:40px;width:420px}
+    h1{color:#3dff9a;font-size:30px;margin-bottom:4px}
+    .tagline{color:#6b7a99;font-size:14px;margin-bottom:28px}
+    .tabs{display:flex;gap:8px;margin-bottom:24px}
+    .tab{flex:1;padding:10px;background:#0f1117;border:1px solid #2d3048;border-radius:10px;cursor:pointer;text-align:center;color:#6b7a99;font-size:14px;font-family:inherit;transition:all .2s}
+    .tab.active{border-color:#3dff9a;color:#3dff9a}
+    .form-sec{display:none}.form-sec.active{display:block}
+    label{font-size:12px;color:#6b7a99;margin-bottom:5px;display:block}
+    input,select{width:100%;padding:12px 14px;background:#0f1117;border:1px solid #2d3048;border-radius:10px;color:#fff;font-size:14px;margin-bottom:16px;font-family:inherit}
+    input:focus,select:focus{outline:none;border-color:#3dff9a}
+    select option{background:#1a1d27}
+    .btn{width:100%;padding:14px;background:#3dff9a;color:#0f1117;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+    .error{color:#ff6b6b;font-size:13px;margin-bottom:16px;padding:10px 14px;background:#ff6b6b10;border-radius:8px;border:1px solid #ff6b6b20}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>EduLite</h1>
+  <p class="tagline">Offline AI learning for every student</p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <div class="tabs">
+    <button class="tab active" onclick="show('login',this)">Login</button>
+    <button class="tab" onclick="show('register',this)">Register</button>
+  </div>
+  <div id="login" class="form-sec active">
+    <form method="POST" action="/login">
+      <label>Name</label><input name="name" placeholder="Your name" required>
+      <label>Password</label><input name="password" type="password" placeholder="Password" required>
+      <button type="submit" class="btn">Login</button>
+    </form>
+  </div>
+  <div id="register" class="form-sec">
+    <form method="POST" action="/register">
+      <label>Full Name</label><input name="name" placeholder="Your full name" required>
+      <label>Grade</label>
+      <select name="grade">
+        <option value="primary">Primary (Class 1-5)</option>
+        <option value="middle" selected>Middle School (Class 6-8)</option>
+        <option value="high">High School (Class 9-10)</option>
+      </select>
+      <label>Preferred Language</label>
+      <select name="language">
+        <option value="english">English</option>
+        <option value="tamil">Tamil</option>
+        <option value="hindi">Hindi</option>
+        <option value="telugu">Telugu</option>
+      </select>
+      <label>Create Password</label><input name="password" type="password" placeholder="Choose a password" required>
+      <button type="submit" class="btn">Create Account</button>
+    </form>
+  </div>
+</div>
+<script>
+function show(id,btn){
+  document.querySelectorAll('.form-sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
