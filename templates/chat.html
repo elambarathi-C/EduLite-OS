@@ -5,68 +5,246 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;height:100vh;display:flex;flex-direction:column}
-    nav{background:#1a1d27;border-bottom:1px solid #2d3048;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+
+    /* NAV */
+    nav{background:#1a1d27;border-bottom:1px solid #2d3048;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;z-index:10}
     .back{color:#6b7a99;text-decoration:none;font-size:14px}
+    .nav-title{font-size:16px;font-weight:600}
     .subject-sel{margin-left:auto;background:#0f1117;border:1px solid #2d3048;color:#e2e8f0;padding:6px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+
+    /* LAYOUT */
+    .layout{display:flex;flex:1;overflow:hidden}
+
+    /* SIDEBAR */
+    .sidebar{width:260px;background:#11141f;border-right:1px solid #2d3048;display:flex;flex-direction:column;flex-shrink:0}
+    .sidebar-header{padding:16px;border-bottom:1px solid #2d3048;display:flex;align-items:center;justify-content:space-between}
+    .sidebar-header span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7a99}
+    .new-chat-btn{background:#3dff9a15;color:#3dff9a;border:1px solid #3dff9a30;padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+    .new-chat-btn:hover{background:#3dff9a25}
+    .history-list{flex:1;overflow-y:auto;padding:8px}
+    .history-item{padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;transition:background .15s;border:1px solid transparent}
+    .history-item:hover{background:#1a1d27;border-color:#2d3048}
+    .history-item.active{background:#1a1d27;border-color:#3dff9a30}
+    .history-preview{font-size:13px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .history-time{font-size:11px;color:#6b7a99;margin-top:3px}
+    .no-history{padding:20px 12px;font-size:13px;color:#6b7a99;text-align:center;line-height:1.6}
+
+    /* CHAT AREA */
+    .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
     .messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
     .msg{max-width:76%;padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.65}
     .msg.user{background:#3dff9a15;border:1px solid #3dff9a30;align-self:flex-end}
     .msg.ai{background:#1a1d27;border:1px solid #2d3048;align-self:flex-start}
     .ai-label{color:#3dff9a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
     .typing{color:#6b7a99;font-style:italic}
+
+    /* INPUT */
     .input-row{background:#1a1d27;border-top:1px solid #2d3048;padding:16px 24px;display:flex;gap:10px;flex-shrink:0}
     .input-row input{flex:1;background:#0f1117;border:1px solid #2d3048;color:#e2e8f0;padding:13px 16px;border-radius:12px;font-size:15px;font-family:inherit}
     .input-row input:focus{outline:none;border-color:#3dff9a}
-    .send{background:#3dff9a;color:#0f1117;border:none;padding:13px 26px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+    .send{background:#3dff9a;color:#0f1117;border:none;padding:13px 26px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+    .send:hover{background:#2de085}
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#2d3048;border-radius:4px}
   </style>
 </head>
 <body>
+
 <nav>
   <a href="/dashboard" class="back">← Back</a>
-  <span style="font-size:16px;font-weight:600">AI Tutor</span>
+  <span class="nav-title">AI Tutor</span>
   <select class="subject-sel" id="subSel">
     <option value="">All Subjects</option>
-    <option>Mathematics</option><option>Science</option>
-    <option>English</option><option>History</option><option>Geography</option>
+    <option>Mathematics</option>
+    <option>Science</option>
+    <option>English</option>
+    <option>History</option>
+    <option>Geography</option>
   </select>
 </nav>
-<div class="messages" id="msgs">
-  <div class="msg ai">
-    <div class="ai-label">EduLite Tutor</div>
-    Hi {{ name }}! I am your offline AI tutor. Ask me anything from your CBSE textbooks. 📚
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span>Chat History</span>
+      <button class="new-chat-btn" onclick="newChat()">+ New</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="no-history">No previous chats yet.<br>Start asking questions!</div>
+    </div>
   </div>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="messages" id="msgs">
+      <div class="msg ai">
+        <div class="ai-label">EduLite Tutor</div>
+        Hi {{ name }}! I am your offline AI tutor. Ask me anything from your CBSE textbooks. 📚
+      </div>
+    </div>
+    <div class="input-row">
+      <input id="qInput" type="text" placeholder="Ask a question from your textbook..."
+             onkeydown="if(event.key==='Enter')send()">
+      <button class="send" onclick="send()">Ask</button>
+    </div>
+  </div>
+
 </div>
-<div class="input-row">
-  <input id="qInput" type="text" placeholder="Ask a question..."
-         onkeydown="if(event.key==='Enter')send()">
-  <button class="send" onclick="send()">Ask</button>
-</div>
+
 <script>
-const GRADE="{{ grade }}",LANG="{{ language }}";
-async function send(){
-  const inp=document.getElementById('qInput');
-  const q=inp.value.trim(); if(!q)return;
-  inp.value=''; addMsg(q,'user');
-  const t=addMsg('Thinking...','ai',true);
-  try{
-    const r=await fetch('http://localhost:5001/ask',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({question:q,grade:GRADE,language:LANG,
-        subject:document.getElementById('subSel').value||null})
-    });
-    const d=await r.json(); t.remove();
-    addMsg(d.answer||d.error,'ai');
-  }catch(e){t.remove();addMsg('Cannot reach AI. Make sure api.py is running.','ai');}
+const GRADE = "{{ grade }}";
+const LANG = "{{ language }}";
+
+// Group messages into sessions by pairing user+ai messages
+let sessions = []; // [{question, answer, time}]
+
+// Load history from server on page load
+async function loadHistory() {
+  try {
+    const r = await fetch('/get_history');
+    const history = await r.json();
+    if (!history.length) return;
+
+    // Rebuild sessions from flat history
+    sessions = [];
+    for (let i = 0; i < history.length; i += 2) {
+      const userMsg = history[i];
+      const aiMsg = history[i + 1];
+      if (userMsg && aiMsg) {
+        sessions.push({
+          question: userMsg.message,
+          answer: aiMsg.message,
+          time: formatTime(new Date())
+        });
+      }
+    }
+    renderSidebar();
+  } catch(e) {
+    console.log('Could not load history:', e);
+  }
 }
-function addMsg(text,type,typing=false){
-  const d=document.createElement('div'); d.className='msg '+type;
-  if(type==='ai')d.innerHTML='<div class="ai-label">EduLite Tutor</div>'+(typing?'<span class="typing">'+text+'</span>':text);
-  else d.textContent=text;
-  const m=document.getElementById('msgs'); m.appendChild(d); m.scrollTop=m.scrollHeight;
+
+function renderSidebar() {
+  const list = document.getElementById('historyList');
+  if (!sessions.length) {
+    list.innerHTML = '<div class="no-history">No previous chats yet.<br>Start asking questions!</div>';
+    return;
+  }
+  list.innerHTML = sessions.map((s, i) => `
+    <div class="history-item" id="hist-${i}" onclick="loadSession(${i})">
+      <div class="history-preview">${escapeHtml(s.question)}</div>
+      <div class="history-time">${s.time}</div>
+    </div>
+  `).reverse().join(''); // newest first
+}
+
+function loadSession(index) {
+  // Highlight active
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+  // Find the element (reversed order in sidebar)
+  const reversedIndex = sessions.length - 1 - index;
+  const el = document.getElementById(`hist-${index}`);
+  if (el) el.classList.add('active');
+
+  // Show that session in chat
+  const msgs = document.getElementById('msgs');
+  msgs.innerHTML = '';
+  addMsg(sessions[index].question, 'user');
+  addMsg(sessions[index].answer, 'ai');
+}
+
+function newChat() {
+  document.getElementById('msgs').innerHTML = `
+    <div class="msg ai">
+      <div class="ai-label">EduLite Tutor</div>
+      Hi {{ name }}! I am your offline AI tutor. Ask me anything from your CBSE textbooks. 📚
+    </div>`;
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('qInput').focus();
+}
+
+async function send() {
+  const inp = document.getElementById('qInput');
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+
+  addMsg(q, 'user');
+  const t = addMsg('Thinking...', 'ai', true);
+
+  try {
+    const r = await fetch('http://localhost:5001/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        question: q,
+        grade: GRADE,
+        language: LANG,
+        subject: document.getElementById('subSel').value || null
+      })
+    });
+    const d = await r.json();
+    t.remove();
+
+    const answer = d.answer || d.error || 'No response';
+    addMsg(answer, 'ai');
+
+    // Save to server
+    await fetch('/save_chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({role: 'user', message: q})
+    });
+    await fetch('/save_chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({role: 'ai', message: answer})
+    });
+
+    // Add to sidebar
+    sessions.push({question: q, answer: answer, time: formatTime(new Date())});
+    renderSidebar();
+
+  } catch(e) {
+    t.remove();
+    addMsg('Cannot reach AI. Make sure api.py is running on port 5001.', 'ai');
+  }
+}
+
+function addMsg(text, type, typing = false) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + type;
+  if (type === 'ai') {
+    d.innerHTML = '<div class="ai-label">EduLite Tutor</div>' +
+      (typing ? '<span class="typing">' + text + '</span>' : text);
+  } else {
+    d.textContent = text;
+  }
+  const msgs = document.getElementById('msgs');
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
   return d;
 }
-const sp=new URLSearchParams(location.search).get('subject');
-if(sp)document.getElementById('subSel').value=sp;
+
+function formatTime(date) {
+  return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Set subject from URL param if coming from dashboard
+const sp = new URLSearchParams(location.search).get('subject');
+if (sp) document.getElementById('subSel').value = sp;
+
+// Load history on page load
+loadHistory();
 </script>
 </body>
 </html>
