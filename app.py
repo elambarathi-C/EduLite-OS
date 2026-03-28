@@ -11,6 +11,7 @@ def get_db():
 
 def init_db():
     db = get_db()
+    # Existing tables...
     db.execute("""CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -26,8 +27,38 @@ def init_db():
         total INTEGER,
         date TEXT DEFAULT CURRENT_DATE
     )""")
+    # ADD THIS NEW TABLE
+    db.execute("""CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        role TEXT,
+        message TEXT,
+        timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+    )""")
     db.commit()
     db.close()
+
+# ADD THIS NEW ROUTE to fetch history for the UI
+@app.route("/get_history")
+def get_history():
+    if "student_id" not in session:
+        return jsonify([])
+    db = get_db()
+    history = db.execute("SELECT role, message FROM chat_history WHERE student_id=? ORDER BY timestamp ASC", 
+                         (session["student_id"],)).fetchall()
+    db.close()
+    return jsonify([dict(row) for row in history])
+
+# ADD THIS NEW ROUTE to save new messages
+@app.route("/save_chat", methods=["POST"])
+def save_chat():
+    data = request.json
+    db = get_db()
+    db.execute("INSERT INTO chat_history (student_id, role, message) VALUES (?,?,?)",
+               (session["student_id"], data["role"], data["message"]))
+    db.commit()
+    db.close()
+    return jsonify({"status": "saved"})
 
 @app.route("/")
 def index():
